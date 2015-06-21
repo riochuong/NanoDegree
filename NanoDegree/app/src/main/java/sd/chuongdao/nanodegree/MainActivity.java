@@ -1,6 +1,5 @@
 package sd.chuongdao.nanodegree;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -10,9 +9,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-
-
-
+import sd.chuongdao.spotify.SpotifyStreamerMainActivity;
 
 
 public class MainActivity extends ActionBarActivity implements OnClickListener {
@@ -111,7 +108,8 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
      * this method use for responding to spotify streamer btn clicked
      */
     private void spotifyStreamerClicked() {
-
+        // for now just launch a started activity when the button is pressed
+        startActivity(SpotifyStreamerMainActivity.makeLaunchIntent(this));
         Utils.makeToast(this,"Launch Spotify Streamer");
 
     }
