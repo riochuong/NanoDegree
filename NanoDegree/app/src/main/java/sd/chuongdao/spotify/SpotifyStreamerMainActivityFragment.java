@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,17 +22,19 @@ import sd.chuongdao.nanodegree.R;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class SpotifyStreamerMainActivityFragment extends Fragment implements TextView.OnEditorActionListener {
+public class SpotifyStreamerMainActivityFragment extends Fragment
+                                                implements TextView.OnEditorActionListener,
+                                                            ListView.OnItemClickListener {
 
     ListView artistListResultView;
 
     EditText artistSearchTextView;
 
-    SpotifyArrayAdapter artistResultAdapter;
+    SpotifyArtistArrayAdapter artistResultAdapter;
 
-    SpotifyDisplayDataObjects mCurrentDisplayData;
+    SpotifyArtistDisplayDataObjects mCurrentDisplayData;
 
-    SpotifyServicesHelper mSpotifyServiceHelper;
+    //SpotifyServicesHelper mSpotifyServiceHelper;
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -43,7 +46,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
         super.onCreate(savedInstanceState);
 
         // initialize Spotify services for the life cycle of the fragment
-        mSpotifyServiceHelper = new SpotifyServicesHelper();
+        //mSpotifyServiceHelper = new SpotifyServicesHelper();
     }
 
     @Override
@@ -59,9 +62,11 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
         // set editor actions for search
         artistSearchTextView.setOnEditorActionListener(this);
 
-        artistResultAdapter = new SpotifyArrayAdapter(getActivity(), null);
+        artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(), null);
 
         artistListResultView.setAdapter(artistResultAdapter);
+
+        artistListResultView.setOnItemClickListener(this);
 
         return rootView;
     }
@@ -72,7 +77,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
      * make sure that
      */
 
-    private void updateListViewData (SpotifyDisplayDataObjects newDisplayData) {
+    private void updateListViewData (SpotifyArtistDisplayDataObjects newDisplayData) {
         // set current data
         mCurrentDisplayData = newDisplayData;
 
@@ -81,7 +86,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
             artistResultAdapter.setSpotifyData(mCurrentDisplayData);
             Log.v(TAG,"Set new data point for Adapter");
         } else {
-            artistResultAdapter = new SpotifyArrayAdapter(getActivity(),newDisplayData);
+            artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(),newDisplayData);
         }
 
         // make sure data get updated correctly
@@ -101,31 +106,40 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
 
             // Query artist name
             // TODO: call SPOTIFY API methods here -- maybe AsyncTask should work or Service
-            new SpotifyQueryTask().execute(artistName);
+            new SpotifyArtistQueryTask().execute(artistName);
+
             handled = true;
         }
 
         return handled;
     }
 
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        // initiate an Itent to get the top tracks
+        String artistId = mCurrentDisplayData.getArtistAt(i).id;
+        // now launch top 10 Activity to display results
+        startActivity(SpotifyTop10Activity.getLaunchIntentWithArtisId(getActivity(),artistId));
+    }
+
 
     /**
      * Helper class used for querying spotify data
      */
-    private class SpotifyQueryTask extends AsyncTask<String,String,SpotifyDisplayDataObjects> {
+    private class SpotifyArtistQueryTask extends AsyncTask<String,String,SpotifyArtistDisplayDataObjects> {
 
         @Override
-        protected SpotifyDisplayDataObjects doInBackground(String... strings) {
+        protected SpotifyArtistDisplayDataObjects doInBackground(String... strings) {
             // assume the fist element is artist name
 
             String artName = strings[0];
 
-            List<Artist> results = mSpotifyServiceHelper.searchForArtist(artName).artists.items;
+            List<Artist> results = SpotifyStreamerUtils.mSpotifyHelper.searchForArtist(artName).artists.items;
 
             if (results != null && results.size() > 0){
 
                 // save Artist results Name
-                SpotifyDisplayDataObjects newData = new SpotifyDisplayDataObjects(results);
+                SpotifyArtistDisplayDataObjects newData = new SpotifyArtistDisplayDataObjects(results);
 
                 Log.d(TAG," There are  " + results.size() +" matched data found !!!");
 
@@ -140,7 +154,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
         }
 
         @Override
-        protected void onPostExecute(SpotifyDisplayDataObjects s) {
+        protected void onPostExecute(SpotifyArtistDisplayDataObjects s) {
 
             Log.d(TAG,"Update data on Post Exec of Spotify Query Task");
 

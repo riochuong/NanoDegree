@@ -17,13 +17,14 @@ import sd.chuongdao.nanodegree.R;
 /**
  * Created by chuongdao on 6/21/15.
  */
-public class SpotifyArrayAdapter extends ArrayAdapter {
+public class SpotifyTrackArrayAdapter extends ArrayAdapter {
 
     Context mContext;
-    SpotifyDisplayDataObjects mSpotifyData;
+    SpotifyTrackDisplayDataObjects mSpotifyData;
+
     private final String TAG = this.getClass().getSimpleName();
 
-    public SpotifyArrayAdapter(Context context, SpotifyDisplayDataObjects obj) {
+    public SpotifyTrackArrayAdapter(Context context,  SpotifyTrackDisplayDataObjects obj) {
         super(context, -1); // we overrided getView as below
         mContext = context;
         mSpotifyData = obj;
@@ -36,25 +37,32 @@ public class SpotifyArrayAdapter extends ArrayAdapter {
         LayoutInflater viewInflater = (LayoutInflater) mContext.
                                             getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        Log.d(TAG, "Inflate List View");
+        Log.d(TAG, "Inflate Top Track List View");
         // inflate the view with coresponding data...
-        View rowView = viewInflater.inflate(R.layout.artist_item_view, null);
+        View rowView = viewInflater.inflate(R.layout.top_track_item_view, null);
 
         // find the correspoding data...
-        TextView artName = (TextView) rowView.findViewById(R.id.artistTextView);
-        ImageView imgView = (ImageView) rowView.findViewById(R.id.artistImageView);
+        TextView trackNameTextView = (TextView) rowView.findViewById(R.id.topTrackNameTextView);
+        TextView trackAlbumNameTextView = (TextView) rowView.findViewById(R.id.topTrackAlbumNameTextView);
+        ImageView imgView = (ImageView) rowView.findViewById(R.id.topTrackImageView);
 
 
 
         // now set the data...
         if (mSpotifyData != null ) {
 
-            String artistName = mSpotifyData.getArtistAt(position).name;
+            String trackName = mSpotifyData.getTracktAt(position).name;
+
             String thumbNailURl = mSpotifyData.getUrlThumbnail(position);
 
+            String albumNAme = mSpotifyData.getAlbumNameAt(position);
+
             // check valid data and set correct data
-            if (artistName != null)
-                artName.setText(artistName);
+            if (trackName != null)
+                trackNameTextView.setText(trackName);
+
+            if (albumNAme != null)
+                trackAlbumNameTextView.setText(albumNAme);
 
             if (thumbNailURl != null){
                 // load image
@@ -71,8 +79,6 @@ public class SpotifyArrayAdapter extends ArrayAdapter {
         if (mSpotifyData == null )
             return 0;
 
-
-
         return mSpotifyData.getSizeOfData();
 
     }
@@ -81,7 +87,7 @@ public class SpotifyArrayAdapter extends ArrayAdapter {
      * Setter used for updating data
      * @param mSpotifyData
      */
-    public void setSpotifyData(SpotifyDisplayDataObjects mSpotifyData) {
+    public void setSpotifyData(SpotifyTrackDisplayDataObjects mSpotifyData) {
         this.mSpotifyData = mSpotifyData;
     }
 }

@@ -10,5 +10,6 @@
     <string name="xyz_reader_btn_name">XYZ READER</string>
     <string name="capstone_myApp_btn_name">CAPSTONE: MY APP</string>
     <string name="nano_launcher_title_name">NANO LAUNCHER</string>
-    <string name="title_activity_spotify_streamer_main">SpotifyStreamerMainActivity</string>
+    <string name="title_activity_spotify_streamer_main">Spotify Streamer</string>
+    <string name="title_activity_spotify_top10">Top 10</string>
 </resources>

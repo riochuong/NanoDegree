@@ -2,9 +2,13 @@ package sd.chuongdao.spotify;
 
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
  * Created by chuongdao on 6/21/15.
@@ -36,6 +40,19 @@ public class SpotifyServicesHelper {
         Log.d(TAG, "Query Spotify DB !!");
 
         return spServ.searchArtists(name);
+    }
+
+
+    public Tracks getTopTracksFromId(String id) {
+        Log.v(TAG," Query db for top tracks of ID "+id);
+
+        Map<String,Object> options = new HashMap<>();
+
+        options.put(SpotifyService.COUNTRY, "US");
+        //hardcoded US for now ...will put it in settings
+        // later
+
+        return spServ.getArtistTopTrack(id.trim(),options);
     }
 
 
