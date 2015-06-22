@@ -53,10 +53,15 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
 
         // find the list view
         artistListResultView = (ListView) rootView.findViewById(R.id.artistResultListView);
+
         artistSearchTextView = (EditText) rootView.findViewById(R.id.artistSearchTextView);
 
         // set editor actions for search
         artistSearchTextView.setOnEditorActionListener(this);
+
+        artistResultAdapter = new SpotifyArrayAdapter(getActivity(), null);
+
+        artistListResultView.setAdapter(artistResultAdapter);
 
         return rootView;
     }
@@ -74,12 +79,15 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
         // update result list
         if (artistResultAdapter != null ){
             artistResultAdapter.setSpotifyData(mCurrentDisplayData);
+            Log.v(TAG,"Set new data point for Adapter");
         } else {
             artistResultAdapter = new SpotifyArrayAdapter(getActivity(),newDisplayData);
         }
 
         // make sure data get updated correctly
+        Log.v(TAG,"Notify changes in data set");
         artistResultAdapter.notifyDataSetChanged();
+        artistListResultView.setAdapter(artistResultAdapter);
     }
 
     @Override
@@ -93,7 +101,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment implements Tex
 
             // Query artist name
             // TODO: call SPOTIFY API methods here -- maybe AsyncTask should work or Service
-
+            new SpotifyQueryTask().execute(artistName);
             handled = true;
         }
 
