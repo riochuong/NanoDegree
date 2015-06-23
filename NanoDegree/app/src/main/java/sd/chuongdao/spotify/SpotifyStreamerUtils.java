@@ -1,5 +1,11 @@
 package sd.chuongdao.spotify;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.util.Log;
+import android.widget.Toast;
+
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Image;
@@ -15,6 +21,13 @@ public class SpotifyStreamerUtils {
     private static final int THUMBNAIL_HEIGHT_MAX = 200;
 
     public static final String ARTIST_ID = "artist_id";
+
+    private static final String TAG = "SPOTIFY_STREAMER_UTILS";
+
+    private static final String NETWORK_NOT_AVAILABLE = " NO AVAILABLE NETWORK ";
+
+    static Toast mToastNetworkNotAvailable;
+
 
     static {
         mSpotifyHelper = new SpotifyServicesHelper();
@@ -57,6 +70,51 @@ public class SpotifyStreamerUtils {
 
         return selected;
 
+    }
+
+    /**
+     * Function helps to determine if network is available
+     * @param ctx
+     * @return - true if device is connected to an avaialable network
+     * false - other wise
+     */
+    public static boolean isNetworkAvailable(Context ctx) {
+
+        if (ctx != null ){
+            // get system service
+            ConnectivityManager connectivityManager = (ConnectivityManager)
+                                                ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            // obtain network info
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+            // only this statement can be true
+            if (networkInfo != null
+                    && networkInfo.isConnected()
+                    && networkInfo.isAvailable())
+            {
+                return true;
+            }
+
+        }
+
+        Log.e(TAG, "Cannot get Network Service as context is null");
+        displayNetworkNotAvailable(ctx);
+        return false;
+
+    }
+
+    /**
+     * Let user know when network is not available
+     * @param ctx
+     */
+    public static void displayNetworkNotAvailable(Context ctx){
+        if (mToastNetworkNotAvailable != null)
+            mToastNetworkNotAvailable.cancel();
+
+        mToastNetworkNotAvailable = Toast.makeText(ctx,NETWORK_NOT_AVAILABLE,Toast.LENGTH_SHORT);
+
+        mToastNetworkNotAvailable.show();
     }
 
 }

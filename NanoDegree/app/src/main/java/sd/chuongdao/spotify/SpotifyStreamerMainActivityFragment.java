@@ -92,7 +92,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 Log.d(TAG,"Text changed ...re-query");
 
-                // dont bother to query empty string...which is wasted of resoursec
+
 
                 //queryNewDataFromSpotify(charSequence.toString());
 
@@ -129,6 +129,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         if (artistResultAdapter != null ){
             // switched to good adapter
             artistResultAdapter.setSpotifyData(mCurrentDisplayData);
+
             Log.v(TAG,"Set new data point for Adapter");
         } else {
             artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(),newDisplayData);
@@ -158,13 +159,21 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
      * @param artist
      */
     private void queryNewDataFromSpotify(String artist) {
+
+            //cancel old task if need to
             cancelCurrentQueryTask();
-            if (artist != null &&
-                    !artist.trim().equalsIgnoreCase("")){
-                mCurrentQueryTask = new SpotifyArtistQueryTask();
-                mCurrentQueryTask.execute(artist);
+
+            // make sure there is available network
+            if (SpotifyStreamerUtils.isNetworkAvailable(getActivity())){
+                // dont bother to query empty string...which is wasted of resoursec
+                if (artist != null
+                        && (!(artist.trim().equalsIgnoreCase("")))){
+                    mCurrentQueryTask = new SpotifyArtistQueryTask();
+                    mCurrentQueryTask.execute(artist);
+                } else {
+                    updateListViewData(EMPTY_ARTIST_DATA);
+                }
             } else {
-                displayToastForNotFoundArtist();
                 updateListViewData(EMPTY_ARTIST_DATA);
             }
 

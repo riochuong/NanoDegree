@@ -8,7 +8,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import java.util.ArrayList;
+
+import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 import sd.chuongdao.nanodegree.R;
 
@@ -18,7 +22,7 @@ import sd.chuongdao.nanodegree.R;
 public class SpotifyTop10ActivityFragment extends Fragment {
 
 
-
+    // VARIABLES
     ListView topTrackListView;
 
     SpotifyTrackDisplayDataObjects mCurrentTopTracksData;
@@ -27,7 +31,19 @@ public class SpotifyTop10ActivityFragment extends Fragment {
 
     String mCurrentArtistID; // obtains from intents
 
+    GetTopTrackTask mCurrentQueryTask;
+
+    Toast mCurrentNoTrackFoundToast;
+
+
+    // CONSTANTS
+    private final SpotifyTrackDisplayDataObjects EMPTY_TRACK_DATA =
+            new SpotifyTrackDisplayDataObjects(new ArrayList<Track>());
+
     private final String TAG = this.getClass().getSimpleName();
+
+    private final String NO_TRACK_FOUND = " NO TRACK FOUND";
+
 
     public SpotifyTop10ActivityFragment() {
     }
@@ -55,12 +71,14 @@ public class SpotifyTop10ActivityFragment extends Fragment {
             mCurrentArtistID = artistId;
 
             // Execute as async task
-            new GetTopTrackTask().execute(mCurrentArtistID);
+            queryNewTop10DataFromSpotify(mCurrentArtistID);
 
         }
         else
         {
-            Log.d(TAG, " NO ARTIST ID PASSED THROUGH INTENT ... THIS SHOULD NOT HAPPENED");
+            Log.e(TAG, " NO ARTIST ID PASSED THROUGH INTENT ... THIS SHOULD NOT HAPPENED");
+            // close right away to avoid issue
+            getActivity().finish();
         }
 
         return root;
@@ -74,6 +92,53 @@ public class SpotifyTop10ActivityFragment extends Fragment {
         trackAdapter.setSpotifyData(mCurrentTopTracksData);
         trackAdapter.notifyDataSetChanged();
         Log.v(TAG,"UPDATE TOP TRACK LIST");
+    }
+
+    /**
+     * start the new asynctask to query data from spotify for top 10 tracks
+     * this will include cancelling old query task which have not
+     * been finished
+     * @param id
+     */
+    private void queryNewTop10DataFromSpotify(String id) {
+
+        //cancel old task if need to
+        cancelCurrentQueryTask();
+
+        // make sure there is available network
+        if (SpotifyStreamerUtils.isNetworkAvailable(getActivity())){
+            // dont bother to query empty string...which is wasted of resoursec
+            if (id != null
+                    && (!(id.trim().equalsIgnoreCase("")))){
+                mCurrentQueryTask = new GetTopTrackTask();
+                mCurrentQueryTask.execute(id);
+            } else {
+                updateDataList(EMPTY_TRACK_DATA);
+            }
+        } else {
+            getActivity().finish(); //no need to keep activiy if network is down
+        }
+
+    }
+
+    /**
+     * display toast of no track found
+     */
+    private void displayToastForNoTrackFound() {
+        if (mCurrentNoTrackFoundToast != null)
+            mCurrentNoTrackFoundToast.cancel();
+
+        mCurrentNoTrackFoundToast = Toast.makeText(getActivity(),NO_TRACK_FOUND,Toast.LENGTH_SHORT);
+        mCurrentNoTrackFoundToast.show();
+    }
+
+    /**
+     * Cancel current query task if text changed or done button is hitted again
+     */
+    private void cancelCurrentQueryTask() {
+        if (mCurrentQueryTask != null
+                && (!mCurrentQueryTask.isCancelled()))
+            mCurrentQueryTask.cancel(true);
     }
 
 
@@ -91,14 +156,19 @@ public class SpotifyTop10ActivityFragment extends Fragment {
 
             return topTracks;
 
-
         }
 
 
         @Override
         protected void onPostExecute(Tracks tracks) {
             // update current track list
-            updateDataList(new SpotifyTrackDisplayDataObjects(tracks.tracks));
+            if (tracks != null && tracks.tracks.size() > 0)
+                updateDataList(new SpotifyTrackDisplayDataObjects(tracks.tracks));
+            else{
+                displayToastForNoTrackFound();
+                updateDataList(EMPTY_TRACK_DATA);
+            }
+
         }
     }
 }

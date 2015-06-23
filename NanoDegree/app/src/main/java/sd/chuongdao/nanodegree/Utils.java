@@ -21,7 +21,7 @@ public class Utils {
         if (mToast != null)
             mToast.cancel();
         // save the reference to help reduce waiting time when showing toast
-        mToast = Toast.makeText(ctx,text,Toast.LENGTH_LONG);
+        mToast = Toast.makeText(ctx,text,Toast.LENGTH_SHORT);
         mToast.show();
     }
 

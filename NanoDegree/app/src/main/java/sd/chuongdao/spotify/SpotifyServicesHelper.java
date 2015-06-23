@@ -38,9 +38,14 @@ public class SpotifyServicesHelper {
      */
     public ArtistsPager searchForArtist (String name){
 
-        Log.d(TAG, "Query Spotify DB !!");
-        if (name != null && !name.trim().equalsIgnoreCase(""))
-            return spServ.searchArtists(name);
+        try {
+            Log.d(TAG, "Query Spotify DB !!");
+            if (name != null && !name.trim().equalsIgnoreCase(""))
+                return spServ.searchArtists(name);
+        } catch (Exception e) {
+            Log.e(TAG, "SPOTIFY SERVICE ERROR -- CATCH NETWORK ERROR !!!! ");
+            e.printStackTrace();
+        }
 
         return null;
     }
