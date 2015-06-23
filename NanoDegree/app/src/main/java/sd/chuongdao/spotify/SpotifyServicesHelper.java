@@ -34,12 +34,15 @@ public class SpotifyServicesHelper {
      * Query Spotify DB for the given artist album
      * @param name - name of the
      * @return ArtistPager represent the list of all album results with the given name
+     * null --  if the string is invalid
      */
     public ArtistsPager searchForArtist (String name){
 
         Log.d(TAG, "Query Spotify DB !!");
+        if (name != null && !name.trim().equalsIgnoreCase(""))
+            return spServ.searchArtists(name);
 
-        return spServ.searchArtists(name);
+        return null;
     }
 
 

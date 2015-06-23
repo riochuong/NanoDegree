@@ -3,6 +3,8 @@ package sd.chuongdao.spotify;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -13,10 +15,13 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
+import kaaes.spotify.webapi.android.models.ArtistsPager;
 import sd.chuongdao.nanodegree.R;
 
 /**
@@ -34,9 +39,22 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
 
     SpotifyArtistDisplayDataObjects mCurrentDisplayData;
 
+    Toast mToastArtistNotFound;
+
+    SpotifyArtistQueryTask mCurrentQueryTask;
+
+    private final SpotifyArtistDisplayDataObjects EMPTY_ARTIST_DATA =
+            new SpotifyArtistDisplayDataObjects(new ArrayList<Artist>());
+
+
+
     //SpotifyServicesHelper mSpotifyServiceHelper;
 
+
+    // CONSTANTS
     private final String TAG = this.getClass().getSimpleName();
+
+    private static final String ARTIST_NOT_FOUND = "THERE WAS NO ARTIST MATCHED";
 
     public SpotifyStreamerMainActivityFragment() {
     }
@@ -62,7 +80,32 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         // set editor actions for search
         artistSearchTextView.setOnEditorActionListener(this);
 
-        artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(), null);
+
+        // add text watcher to edit text to trigger search when artist name is entered
+        artistSearchTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                Log.d(TAG,"Text changed ...re-query");
+
+                // dont bother to query empty string...which is wasted of resoursec
+
+                //queryNewDataFromSpotify(charSequence.toString());
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                queryNewDataFromSpotify(editable.toString());
+            }
+
+        });
+
+        artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(),null);
 
         artistListResultView.setAdapter(artistResultAdapter);
 
@@ -78,11 +121,13 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
      */
 
     private void updateListViewData (SpotifyArtistDisplayDataObjects newDisplayData) {
+
         // set current data
         mCurrentDisplayData = newDisplayData;
 
         // update result list
         if (artistResultAdapter != null ){
+            // switched to good adapter
             artistResultAdapter.setSpotifyData(mCurrentDisplayData);
             Log.v(TAG,"Set new data point for Adapter");
         } else {
@@ -93,7 +138,53 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         Log.v(TAG,"Notify changes in data set");
         artistResultAdapter.notifyDataSetChanged();
         artistListResultView.setAdapter(artistResultAdapter);
+
+
     }
+
+    /**
+     * Cancel current query task if text changed or done button is hitted again
+     */
+    private void cancelCurrentQueryTask() {
+        if (mCurrentQueryTask != null
+                && (!mCurrentQueryTask.isCancelled()))
+            mCurrentQueryTask.cancel(true);
+    }
+
+    /**
+     * start the new asynctask to query data from spotify
+     * this will include cancelling old query task which have not
+     * been finished
+     * @param artist
+     */
+    private void queryNewDataFromSpotify(String artist) {
+            cancelCurrentQueryTask();
+            if (artist != null &&
+                    !artist.trim().equalsIgnoreCase("")){
+                mCurrentQueryTask = new SpotifyArtistQueryTask();
+                mCurrentQueryTask.execute(artist);
+            } else {
+                displayToastForNotFoundArtist();
+                updateListViewData(EMPTY_ARTIST_DATA);
+            }
+
+    }
+
+
+    /**
+     * Display the toast to let user know that their artist was not found
+     */
+    private void displayToastForNotFoundArtist () {
+        // first let cancel the old toast if there is one
+        if (mToastArtistNotFound != null)
+            mToastArtistNotFound.cancel();
+
+        mToastArtistNotFound = Toast.makeText(getActivity(),ARTIST_NOT_FOUND,Toast.LENGTH_SHORT);
+        mToastArtistNotFound.show();
+    }
+
+
+
 
     @Override
     public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
@@ -105,8 +196,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
             Log.v(TAG,"Search Spotify for Artist : " + artistName);
 
             // Query artist name
-            // TODO: call SPOTIFY API methods here -- maybe AsyncTask should work or Service
-            new SpotifyArtistQueryTask().execute(artistName);
+            queryNewDataFromSpotify(artistName);
 
             handled = true;
         }
@@ -119,7 +209,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         // initiate an Itent to get the top tracks
         String artistId = mCurrentDisplayData.getArtistAt(i).id;
         // now launch top 10 Activity to display results
-        startActivity(SpotifyTop10Activity.getLaunchIntentWithArtisId(getActivity(),artistId));
+        startActivity(SpotifyTop10Activity.getLaunchIntentWithArtisId(getActivity(), artistId));
     }
 
 
@@ -134,9 +224,12 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
 
             String artName = strings[0];
 
-            List<Artist> results = SpotifyStreamerUtils.mSpotifyHelper.searchForArtist(artName).artists.items;
+            ArtistsPager artistsPager = SpotifyStreamerUtils.mSpotifyHelper.searchForArtist(artName);
 
-            if (results != null && results.size() > 0){
+
+            if (artistsPager != null){
+
+                List<Artist> results = artistsPager.artists.items;
 
                 // save Artist results Name
                 SpotifyArtistDisplayDataObjects newData = new SpotifyArtistDisplayDataObjects(results);
@@ -144,6 +237,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
                 Log.d(TAG," There are  " + results.size() +" matched data found !!!");
 
                 return newData;
+
             } else {
                 Log.d(TAG,"NO DATA related to "+artName+" was found");
             }
@@ -157,8 +251,13 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         protected void onPostExecute(SpotifyArtistDisplayDataObjects s) {
 
             Log.d(TAG,"Update data on Post Exec of Spotify Query Task");
-
-            updateListViewData(s);
+            // dont have to update data if artist not found
+            if (s != null && s.getSizeOfData() > 0)
+                updateListViewData(s);
+            else {
+                displayToastForNotFoundArtist(); // let user know we cannot find there artist
+                updateListViewData(EMPTY_ARTIST_DATA);
+            }
         }
     }
 }
