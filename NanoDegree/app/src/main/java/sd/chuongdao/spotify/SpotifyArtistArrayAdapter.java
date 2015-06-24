@@ -21,7 +21,16 @@ public class SpotifyArtistArrayAdapter extends ArrayAdapter {
 
     Context mContext;
     SpotifyArtistDisplayDataObjects mSpotifyData;
+
+
+    // Constants
     private final String TAG = this.getClass().getSimpleName();
+    private static  final Integer THUMB_MAX_WIDTH = 100;
+
+    private static final Integer THUMB_MAX_HEIGHT = 100;
+
+
+
 
     public SpotifyArtistArrayAdapter(Context context, SpotifyArtistDisplayDataObjects obj) {
         super(context, -1); // we overrided getView as below
@@ -58,9 +67,11 @@ public class SpotifyArtistArrayAdapter extends ArrayAdapter {
 
             if (thumbNailURl != null){
                 // load image
-                Picasso.with(mContext).load(Uri.parse(thumbNailURl)).into(imgView);
+                Picasso.with(mContext).load(Uri.parse(thumbNailURl)).resize(THUMB_MAX_WIDTH
+                        ,THUMB_MAX_HEIGHT).into(imgView);
             } else {
-                // TODO : Let set default image here
+                Picasso.with(mContext).load(android.R.drawable.btn_star_big_on).resize(THUMB_MAX_WIDTH
+                        ,THUMB_MAX_HEIGHT).into(imgView);
             }
         }
         return rowView;

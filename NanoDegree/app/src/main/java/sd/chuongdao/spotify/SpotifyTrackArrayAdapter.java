@@ -22,6 +22,10 @@ public class SpotifyTrackArrayAdapter extends ArrayAdapter {
     Context mContext;
     SpotifyTrackDisplayDataObjects mSpotifyData;
 
+    private static  final Integer THUMB_MAX_WIDTH = 100;
+
+    private static final Integer THUMB_MAX_HEIGHT = 100;
+
     private final String TAG = this.getClass().getSimpleName();
 
     public SpotifyTrackArrayAdapter(Context context,  SpotifyTrackDisplayDataObjects obj) {
@@ -66,7 +70,11 @@ public class SpotifyTrackArrayAdapter extends ArrayAdapter {
 
             if (thumbNailURl != null){
                 // load image
-                Picasso.with(mContext).load(Uri.parse(thumbNailURl)).into(imgView);
+                Picasso.with(mContext).load(Uri.parse(thumbNailURl)).resize(THUMB_MAX_WIDTH
+                                                                    ,THUMB_MAX_HEIGHT).into(imgView);
+            } else {
+                Picasso.with(mContext).load(android.R.drawable.stat_notify_voicemail).resize(THUMB_MAX_WIDTH
+                        ,THUMB_MAX_HEIGHT).into(imgView);
             }
         }
         return rowView;
