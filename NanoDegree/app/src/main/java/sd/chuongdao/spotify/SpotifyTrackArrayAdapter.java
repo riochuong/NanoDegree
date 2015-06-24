@@ -35,21 +35,38 @@ public class SpotifyTrackArrayAdapter extends ArrayAdapter {
     }
 
 
+    private static class ViewHolder {
+        TextView trackNameTextView;
+        TextView trackAlbumNameTextView;
+        ImageView imgView;
+    }
+
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // get the layout inflater service
-        LayoutInflater viewInflater = (LayoutInflater) mContext.
-                                            getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         Log.d(TAG, "Inflate Top Track List View");
-        // inflate the view with coresponding data...
-        View rowView = viewInflater.inflate(R.layout.top_track_item_view, null);
 
-        // find the correspoding data...
-        TextView trackNameTextView = (TextView) rowView.findViewById(R.id.topTrackNameTextView);
-        TextView trackAlbumNameTextView = (TextView) rowView.findViewById(R.id.topTrackAlbumNameTextView);
-        ImageView imgView = (ImageView) rowView.findViewById(R.id.topTrackImageView);
+        ViewHolder holder;
 
+        if (convertView == null) {
+            // get the layout inflater service
+            holder = new ViewHolder();
+            LayoutInflater viewInflater = (LayoutInflater) mContext.
+                    getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            // inflate the view with coresponding data...
+            convertView = viewInflater.inflate(R.layout.top_track_item_view, null);
+
+            // find the correspoding data...
+            holder.trackNameTextView = (TextView) convertView.findViewById(R.id.topTrackNameTextView);
+            holder.trackAlbumNameTextView = (TextView) convertView.findViewById(R.id.topTrackAlbumNameTextView);
+            holder.imgView = (ImageView)convertView.findViewById(R.id.topTrackImageView);
+            convertView.setTag(holder);
+
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
 
 
         // now set the data...
@@ -63,21 +80,21 @@ public class SpotifyTrackArrayAdapter extends ArrayAdapter {
 
             // check valid data and set correct data
             if (trackName != null)
-                trackNameTextView.setText(trackName);
+                holder.trackNameTextView.setText(trackName);
 
             if (albumNAme != null)
-                trackAlbumNameTextView.setText(albumNAme);
+                holder.trackAlbumNameTextView.setText(albumNAme);
 
             if (thumbNailURl != null){
                 // load image
                 Picasso.with(mContext).load(Uri.parse(thumbNailURl)).resize(THUMB_MAX_WIDTH
-                                                                    ,THUMB_MAX_HEIGHT).into(imgView);
+                                                                    ,THUMB_MAX_HEIGHT).into(holder.imgView);
             } else {
                 Picasso.with(mContext).load(android.R.drawable.stat_notify_voicemail).resize(THUMB_MAX_WIDTH
-                        ,THUMB_MAX_HEIGHT).into(imgView);
+                        ,THUMB_MAX_HEIGHT).into(holder.imgView);
             }
         }
-        return rowView;
+        return convertView;
 
     }
 
