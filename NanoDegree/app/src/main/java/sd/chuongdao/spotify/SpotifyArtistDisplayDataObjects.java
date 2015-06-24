@@ -2,13 +2,11 @@ package sd.chuongdao.spotify;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
 
 /**
  * Hold the corresponding Spotify data
@@ -31,7 +29,7 @@ public class SpotifyArtistDisplayDataObjects implements Parcelable {
             // extract data from artist List
             String name = artist.name;
             String id = artist.id;
-            String imageUrl = getUrlThumbnail(i,artistList);
+            String imageUrl = SpotifyStreamerUtils.getUrlThumbnail(artist.images);
 
             // construct parceleable object
             MyArtistParceleable newArtist = new MyArtistParceleable(
@@ -56,30 +54,7 @@ public class SpotifyArtistDisplayDataObjects implements Parcelable {
             return null;
     }
 
-    private String getUrlThumbnail (int pos, List<Artist> artistList ){
 
-        // assume last image should be smallest
-        if ((pos >= 0) && (pos < artistList.size())
-                        && (artistList.size() > 0)) {
-
-
-            int listImageSize = artistList.get(pos).images.size();
-
-            // if there is no image ...just return null
-            if (listImageSize == 0) {
-                Log.d(TAG, "No image available");
-                return null;
-            }
-
-            List<Image> listImgs = artistList.get(pos).images;
-
-            Image lastImage = listImgs.get(SpotifyStreamerUtils.getCorrectImageIndex(listImgs));
-
-            return lastImage.url;
-
-        } else
-            return null;
-    }
 
     /**
      * Consturctor for Parcelable object

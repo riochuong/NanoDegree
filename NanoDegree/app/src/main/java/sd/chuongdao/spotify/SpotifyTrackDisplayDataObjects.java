@@ -1,7 +1,9 @@
 package sd.chuongdao.spotify;
 
-import android.util.Log;
+import android.os.Parcel;
+import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Image;
@@ -11,22 +13,51 @@ import kaaes.spotify.webapi.android.models.Track;
  * Hold the corresponding Spotify data for Track
  * Created by chuongdao on 6/21/15.
  */
-public class SpotifyTrackDisplayDataObjects {
+public class SpotifyTrackDisplayDataObjects implements Parcelable {
 
-    List<Track> mTrackList;
+    List<MyTrackParceleable> mTrackList;
 
     private final String TAG = this.getClass().getSimpleName();
 
-    public SpotifyTrackDisplayDataObjects(List<Track> mTrackList) {
-        this.mTrackList = mTrackList;
+    public SpotifyTrackDisplayDataObjects(List<Track> trackList) {
+
+        this.mTrackList =  new ArrayList<>();
+
+        // parse data
+        for (int i = 0; i < trackList.size(); i++){
+            Track track = trackList.get(i);
+
+            String name = track.name;
+            String album = track.album.toString();
+            String imageUrl = SpotifyStreamerUtils.getUrlThumbnail(track.album.images);
+
+            MyTrackParceleable newTrack = new MyTrackParceleable(
+                    name,  album,    imageUrl
+            );
+
+            mTrackList.add(newTrack);
+
+        }
     }
+
+
+
+    /**
+     * Consturctor for Parcelable object
+     * @param in
+     */
+    public SpotifyTrackDisplayDataObjects (Parcel in) {
+        mTrackList = new ArrayList<>();
+        in.readTypedList(mTrackList, MyTrackParceleable.CREATOR);
+    }
+
 
     /**
      * getter for retreiving artist info
      * @param pos
      * @return
      */
-    public Track getTracktAt (int pos){
+    public MyTrackParceleable getTracktAt (int pos){
         if (pos < mTrackList.size()) {
             return mTrackList.get(pos);
         } else
@@ -40,38 +71,13 @@ public class SpotifyTrackDisplayDataObjects {
      */
     public String getAlbumNameAt (int pos){
         if (pos < mTrackList.size()) {
-            return getTracktAt(pos).album.name;
+            return getTracktAt(pos).getAlbumName();
         } else
             return null;
     }
 
 
-    public String getUrlThumbnail (int pos ){
 
-        // assume last image should be smallest
-        if ((pos >= 0) && (pos < mTrackList.size())
-                        && (mTrackList.size() > 0)) {
-
-            Track currTrack = mTrackList.get(pos);
-
-            List<Image> listImgs = getTrackImages(currTrack);
-
-            //extract size
-            int listImageSize = (listImgs == null )? 0 : listImgs.size() ;
-
-            // if there is no image ...just return null
-            if (listImageSize == 0) {
-                Log.d(TAG, "No image available");
-                return null;
-            }
-
-            Image lastImage = listImgs.get(SpotifyStreamerUtils.getCorrectImageIndex(listImgs));
-
-            return lastImage.url;
-
-        } else
-            return null;
-    }
 
 
 
@@ -94,4 +100,25 @@ public class SpotifyTrackDisplayDataObjects {
         else
             return null;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+            parcel.writeTypedList(mTrackList);
+    }
+
+    // required constructor
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public SpotifyTrackDisplayDataObjects createFromParcel(Parcel in) {
+            return new SpotifyTrackDisplayDataObjects(in);
+        }
+
+        public SpotifyTrackDisplayDataObjects[] newArray(int size) {
+            return new SpotifyTrackDisplayDataObjects[size];
+        }
+    };
 }

@@ -117,4 +117,26 @@ public class SpotifyStreamerUtils {
         mToastNetworkNotAvailable.show();
     }
 
+    public static String getUrlThumbnail (List<Image> imgList ){
+
+        // assume last image should be smallest
+        if (imgList.size() > 0) {
+
+
+
+
+            // if there is no image ...just return null
+            if (imgList.size() == 0) {
+                Log.d(TAG, "No image available");
+                return null;
+            }
+
+            Image lastImage = imgList.get(getCorrectImageIndex(imgList));
+
+            return lastImage.url.toString();
+
+        } else
+            return null;
+    }
+
 }

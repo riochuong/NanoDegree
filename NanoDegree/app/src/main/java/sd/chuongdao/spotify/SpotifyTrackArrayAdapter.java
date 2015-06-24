@@ -51,9 +51,9 @@ public class SpotifyTrackArrayAdapter extends ArrayAdapter {
         // now set the data...
         if (mSpotifyData != null ) {
 
-            String trackName = mSpotifyData.getTracktAt(position).name;
+            String trackName = mSpotifyData.getTracktAt(position).getName();
 
-            String thumbNailURl = mSpotifyData.getUrlThumbnail(position);
+            String thumbNailURl = mSpotifyData.getTracktAt(position).getImageUrl();
 
             String albumNAme = mSpotifyData.getAlbumNameAt(position);
 

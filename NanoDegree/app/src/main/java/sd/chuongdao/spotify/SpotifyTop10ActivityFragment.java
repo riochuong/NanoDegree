@@ -36,6 +36,8 @@ public class SpotifyTop10ActivityFragment extends Fragment {
     Toast mCurrentNoTrackFoundToast;
 
 
+
+
     // CONSTANTS
     private final SpotifyTrackDisplayDataObjects EMPTY_TRACK_DATA =
             new SpotifyTrackDisplayDataObjects(new ArrayList<Track>());
@@ -44,6 +46,7 @@ public class SpotifyTop10ActivityFragment extends Fragment {
 
     private final String NO_TRACK_FOUND = " NO TRACK FOUND";
 
+    private final String DATA_OBJECT_KEY = "DATA_OBJECT_KEY";
 
     public SpotifyTop10ActivityFragment() {
     }
@@ -56,13 +59,22 @@ public class SpotifyTop10ActivityFragment extends Fragment {
         topTrackListView = (ListView) root.findViewById(R.id.topTracksListView);
 
 
-        Bundle bundle = getActivity().getIntent().getExtras();
-
-        String artistId = bundle.getString(SpotifyStreamerUtils.ARTIST_ID);
-
         trackAdapter = new SpotifyTrackArrayAdapter(getActivity(),null);
 
         topTrackListView.setAdapter(trackAdapter);
+
+        return root;
+    }
+
+    /**
+     * Helper to trigger querying data for top 10
+     * @param 
+     */
+    private void queryDatafromIntent () {
+
+        Bundle bundle = getActivity().getIntent().getExtras();
+
+        String artistId = bundle.getString(SpotifyStreamerUtils.ARTIST_ID);
 
         if (artistId != null ){
 
@@ -80,8 +92,6 @@ public class SpotifyTop10ActivityFragment extends Fragment {
             // close right away to avoid issue
             getActivity().finish();
         }
-
-        return root;
     }
 
     /**
@@ -139,6 +149,27 @@ public class SpotifyTop10ActivityFragment extends Fragment {
         if (mCurrentQueryTask != null
                 && (!mCurrentQueryTask.isCancelled()))
             mCurrentQueryTask.cancel(true);
+    }
+
+    // make sure we saved data here
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(DATA_OBJECT_KEY,mCurrentTopTracksData);
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // make sure it should not crashed
+        if (savedInstanceState != null
+                && savedInstanceState.containsKey(DATA_OBJECT_KEY)) {
+            mCurrentTopTracksData = savedInstanceState.getParcelable(DATA_OBJECT_KEY);
+            updateDataList(mCurrentTopTracksData);
+        } else {
+            queryDatafromIntent();
+        }
     }
 
     /**
