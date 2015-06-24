@@ -1,7 +1,10 @@
 package sd.chuongdao.spotify;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
@@ -11,16 +14,34 @@ import kaaes.spotify.webapi.android.models.Image;
  * Hold the corresponding Spotify data
  * Created by chuongdao on 6/21/15.
  */
-public class SpotifyArtistDisplayDataObjects {
+public class SpotifyArtistDisplayDataObjects implements Parcelable {
 
-    List<Artist> mArtistList;
-
-
+    List<MyArtistParceleable> mArtistList;
 
     private final String TAG = this.getClass().getSimpleName();
 
-    public SpotifyArtistDisplayDataObjects(List<Artist> mArtistList) {
-        this.mArtistList = mArtistList;
+    public SpotifyArtistDisplayDataObjects(List<Artist> artistList) {
+
+        mArtistList = new ArrayList<>();
+
+        // now construct the new artist list
+        for (int i = 0; i < artistList.size(); i++){
+
+            Artist artist = artistList.get(i);
+            // extract data from artist List
+            String name = artist.name;
+            String id = artist.id;
+            String imageUrl = getUrlThumbnail(i,artistList);
+
+            // construct parceleable object
+            MyArtistParceleable newArtist = new MyArtistParceleable(
+                name, id, imageUrl
+            );
+
+            // put it to the array list
+            mArtistList.add(newArtist);
+
+        }
     }
 
     /**
@@ -28,21 +49,21 @@ public class SpotifyArtistDisplayDataObjects {
      * @param pos
      * @return
      */
-    public Artist getArtistAt (int pos){
+    public MyArtistParceleable getArtistAt (int pos){
         if (pos < mArtistList.size()) {
             return mArtistList.get(pos);
         } else
             return null;
     }
 
-    public String getUrlThumbnail (int pos ){
+    private String getUrlThumbnail (int pos, List<Artist> artistList ){
 
         // assume last image should be smallest
-        if ((pos >= 0) && (pos < mArtistList.size())
-                        && (mArtistList.size() > 0)) {
+        if ((pos >= 0) && (pos < artistList.size())
+                        && (artistList.size() > 0)) {
 
 
-            int listImageSize = mArtistList.get(pos).images.size();
+            int listImageSize = artistList.get(pos).images.size();
 
             // if there is no image ...just return null
             if (listImageSize == 0) {
@@ -50,7 +71,7 @@ public class SpotifyArtistDisplayDataObjects {
                 return null;
             }
 
-            List<Image> listImgs = mArtistList.get(pos).images;
+            List<Image> listImgs = artistList.get(pos).images;
 
             Image lastImage = listImgs.get(SpotifyStreamerUtils.getCorrectImageIndex(listImgs));
 
@@ -60,6 +81,14 @@ public class SpotifyArtistDisplayDataObjects {
             return null;
     }
 
+    /**
+     * Consturctor for Parcelable object
+     * @param in
+     */
+    public SpotifyArtistDisplayDataObjects (Parcel in) {
+        mArtistList = new ArrayList<>();
+        in.readTypedList(mArtistList, MyArtistParceleable.CREATOR);
+    }
 
 
 
@@ -73,4 +102,25 @@ public class SpotifyArtistDisplayDataObjects {
         else
             return 0;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeTypedList(mArtistList);
+
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public SpotifyArtistDisplayDataObjects createFromParcel(Parcel in) {
+            return new SpotifyArtistDisplayDataObjects(in);
+        }
+
+        public SpotifyArtistDisplayDataObjects[] newArray(int size) {
+            return new SpotifyArtistDisplayDataObjects[size];
+        }
+    };
 }

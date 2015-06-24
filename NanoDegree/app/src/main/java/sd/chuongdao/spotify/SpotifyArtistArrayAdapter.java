@@ -49,8 +49,8 @@ public class SpotifyArtistArrayAdapter extends ArrayAdapter {
         // now set the data...
         if (mSpotifyData != null ) {
 
-            String artistName = mSpotifyData.getArtistAt(position).name;
-            String thumbNailURl = mSpotifyData.getUrlThumbnail(position);
+            String artistName = mSpotifyData.getArtistAt(position).getName();
+            String thumbNailURl = mSpotifyData.getArtistAt(position).getImageUrl();
 
             // check valid data and set correct data
             if (artistName != null)
@@ -59,6 +59,8 @@ public class SpotifyArtistArrayAdapter extends ArrayAdapter {
             if (thumbNailURl != null){
                 // load image
                 Picasso.with(mContext).load(Uri.parse(thumbNailURl)).into(imgView);
+            } else {
+                // TODO : Let set default image here
             }
         }
         return rowView;

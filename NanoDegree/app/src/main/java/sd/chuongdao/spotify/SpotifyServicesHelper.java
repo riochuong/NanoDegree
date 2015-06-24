@@ -37,30 +37,42 @@ public class SpotifyServicesHelper {
      * null --  if the string is invalid
      */
     public ArtistsPager searchForArtist (String name){
+        ArtistsPager res = null;
 
         try {
             Log.d(TAG, "Query Spotify DB !!");
             if (name != null && !name.trim().equalsIgnoreCase(""))
-                return spServ.searchArtists(name);
+                res = spServ.searchArtists(name);
         } catch (Exception e) {
-            Log.e(TAG, "SPOTIFY SERVICE ERROR -- CATCH NETWORK ERROR !!!! ");
+            Log.e(TAG, "SPOTIFY ARTIST QUERY SERVICE ERROR -- TRY TO CATCH NETWORK ERROR !!!! ");
             e.printStackTrace();
         }
 
-        return null;
+        return res;
     }
 
 
     public Tracks getTopTracksFromId(String id) {
-        Log.v(TAG," Query db for top tracks of ID "+id);
 
-        Map<String,Object> options = new HashMap<>();
+        Tracks res = null;
 
-        options.put(SpotifyService.COUNTRY, "US");
-        //hardcoded US for now ...will put it in settings
-        // later
+        try {
+            Log.v(TAG," Query db for top tracks of ID "+id);
 
-        return spServ.getArtistTopTrack(id.trim(),options);
+            Map<String,Object> options = new HashMap<>();
+
+            options.put(SpotifyService.COUNTRY, "US");
+            //hardcoded US for now ...will put it in settings
+            // later
+
+            res =  spServ.getArtistTopTrack(id.trim(),options);
+
+        } catch (Exception e) {
+            Log.e(TAG, "SPOTIFY GET TOP 10SERVICE ERROR -- TRY TO CATCH NETWORK ERROR !!!! ");
+            e.printStackTrace();
+        }
+
+        return res;
     }
 
 

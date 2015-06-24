@@ -47,6 +47,9 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
             new SpotifyArtistDisplayDataObjects(new ArrayList<Artist>());
 
 
+    private static final String DATA_OBJECT_KEY = "DATA_OBJECT_KEY";
+
+    private static final String CURRENT_QUERY = "DATA_QUERY";
 
     //SpotifyServicesHelper mSpotifyServiceHelper;
 
@@ -81,29 +84,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
         artistSearchTextView.setOnEditorActionListener(this);
 
 
-        // add text watcher to edit text to trigger search when artist name is entered
-        artistSearchTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d(TAG,"Text changed ...re-query");
-
-
-
-                //queryNewDataFromSpotify(charSequence.toString());
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                queryNewDataFromSpotify(editable.toString());
-            }
-
-        });
 
         artistResultAdapter = new SpotifyArtistArrayAdapter(getActivity(),null);
 
@@ -180,6 +161,58 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
     }
 
 
+    // make sure we save state to avoid refetch data from network
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(DATA_OBJECT_KEY, mCurrentDisplayData);
+        outState.putString(CURRENT_QUERY,artistSearchTextView.getText().toString());
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // double check to avoid crash at first launch
+
+        if (savedInstanceState != null
+                && savedInstanceState.containsKey(DATA_OBJECT_KEY)) {
+            mCurrentDisplayData = savedInstanceState.getParcelable(DATA_OBJECT_KEY);
+            updateListViewData(mCurrentDisplayData);
+            //artistSearchTextView.setText(savedInstanceState.getString(CURRENT_QUERY));
+        }
+
+
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // add text watcher to edit text to trigger search when artist name is entered
+        artistSearchTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                Log.d(TAG, "Text changed ...re-query");
+
+
+                //queryNewDataFromSpotify(charSequence.toString());
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                queryNewDataFromSpotify(editable.toString());
+            }
+
+        });
+    }
+
     /**
      * Display the toast to let user know that their artist was not found
      */
@@ -216,7 +249,7 @@ public class SpotifyStreamerMainActivityFragment extends Fragment
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         // initiate an Itent to get the top tracks
-        String artistId = mCurrentDisplayData.getArtistAt(i).id;
+        String artistId = mCurrentDisplayData.getArtistAt(i).getId();
         // now launch top 10 Activity to display results
         startActivity(SpotifyTop10Activity.getLaunchIntentWithArtisId(getActivity(), artistId));
     }

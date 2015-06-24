@@ -141,7 +141,9 @@ public class SpotifyTop10ActivityFragment extends Fragment {
             mCurrentQueryTask.cancel(true);
     }
 
-
+    /**
+     * Async task classes used for Query top 10 tracks of an ARTIST
+     */
     private class GetTopTrackTask extends AsyncTask<String,String,Tracks>{
 
         @Override
