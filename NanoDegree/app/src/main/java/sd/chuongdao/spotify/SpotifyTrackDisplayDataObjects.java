@@ -28,7 +28,7 @@ public class SpotifyTrackDisplayDataObjects implements Parcelable {
             Track track = trackList.get(i);
 
             String name = track.name;
-            String album = track.album.toString();
+            String album = track.album.name;
             String imageUrl = SpotifyStreamerUtils.getUrlThumbnail(track.album.images);
 
             MyTrackParceleable newTrack = new MyTrackParceleable(
